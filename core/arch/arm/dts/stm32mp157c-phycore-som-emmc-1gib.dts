@@ -13,7 +13,6 @@
 #include "stm32mp157.dtsi"
 #include "stm32mp15xc.dtsi"
 #include "stm32mp15xx-phycore-som.dtsi"
-#include "stm32mp15-phycore-som-ddr3-2x4Gb-1066-binG.dtsi"
 
 / {
 	model = "PHYTEC phyCORE-STM32MP157C with eMMC and 1GiB RAM";
@@ -22,22 +21,6 @@
 };
 
 &rtc {
-	status = "okay";
-};
-
-&fmc {
-	status = "disabled";
-};
-
-&qspi {
-	status = "okay";
-};
-
-&sdmmc1 {
-	status = "okay";
-};
-
-&sdmmc2 {
 	status = "okay";
 };
 
