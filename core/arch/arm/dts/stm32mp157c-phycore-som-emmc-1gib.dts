@@ -23,7 +23,3 @@
 &rtc {
 	status = "okay";
 };
-
-&cryp1 {
-	status = "okay";
-};
