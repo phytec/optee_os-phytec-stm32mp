@@ -18,6 +18,11 @@
 	model = "PHYTEC phyCORE-STM32MP157C with eMMC and 1GiB RAM";
 	compatible = "phytec,stm32mp157c-phycore-som-emmc-1gib",
 		     "phytec,stm32mp157c-phycore-som.dtsi", "st,stm32mp157";
+
+	memory@c0000000 {
+		device_type = "memory";
+		reg = <0xc0000000 0x40000000>;
+	};
 };
 
 &rtc {
