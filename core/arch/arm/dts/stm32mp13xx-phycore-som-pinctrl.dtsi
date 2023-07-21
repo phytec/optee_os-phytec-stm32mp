@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (C) 2023 PHYTEC Messtechnik GmbH
+ * Author: Christophe Parant <c.parant@phytec.fr>
+ */
+
+#include <dt-bindings/pinctrl/stm32-pinfunc.h>
+
+&pinctrl {
+	rcc_pins_mx: rcc_mx-0 {
+		pins {
+			pinmux = <STM32_PINMUX('D', 7, AF0)>; /* RCC_MCO_1 */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <1>;
+		};
+	};
+
+	uart4_pins_mx: uart4_mx-0 {
+		pins1 {
+			pinmux = <STM32_PINMUX('D', 6, AF8)>; /* UART4_TX */
+			bias-disable;
+			drive-push-pull;
+			slew-rate = <0>;
+		};
+		pins2 {
+			pinmux = <STM32_PINMUX('D', 8, AF8)>; /* UART4_RX */
+			bias-pull-up;
+		};
+	};
+};

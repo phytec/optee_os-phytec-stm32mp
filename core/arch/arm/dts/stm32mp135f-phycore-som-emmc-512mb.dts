@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (C) 2023 PHYTEC Messtechnik GmbH
+ * Author: Christophe Parant <c.parant@phytec.fr>
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/clock/stm32mp13-clksrc.h>
+#include "stm32mp135.dtsi"
+#include "stm32mp13xf.dtsi"
+#include "stm32mp13xx-phycore-som.dtsi"
+
+/ {
+	model = "PHYTEC phyCORE-STM32MP135F with eMMC and 512MB RAM";
+	compatible = "phytec,stm32mp135f-pcl076-emmc-512mb", "st,stm32mp135";
+
+	memory@c0000000 {
+		device_type = "memory";
+		reg = <0xc0000000 0x20000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		optee_framebuffer: optee-framebuffer@dd000000 {
+			/* Secure framebuffer memory */
+			reg = <0xdd000000 0x1000000>;
+			st,protreg = <TZC_REGION_S_RDWR 0>;
+		};
+	};
+};
+
+&pka{
+	status = "okay";
+};
+
+&saes{
+	status = "okay";
+};
