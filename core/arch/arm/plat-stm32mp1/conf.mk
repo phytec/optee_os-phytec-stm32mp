@@ -3,31 +3,41 @@ flavor_dts_file-157A_DHCOR_AVENGER96 = stm32mp157a-dhcor-avenger96.dts
 flavor_dts_file-157A_DK1 = stm32mp157a-dk1.dts
 flavor_dts_file-157A_ED1 = stm32mp157a-ed1.dts
 flavor_dts_file-157A_EV1 = stm32mp157a-ev1.dts
+flavor_dts_file-153A_PHYCORE_512MB = stm32mp153a-phycore-som-nand-512mb.dts
 flavor_dts_file-157C_DHCOM_PDK2 = stm32mp157c-dhcom-pdk2.dts
 flavor_dts_file-157C_DK2 = stm32mp157c-dk2.dts
 flavor_dts_file-157C_ED1 = stm32mp157c-ed1.dts
 flavor_dts_file-157C_EV1 = stm32mp157c-ev1.dts
+flavor_dts_file-157C_PHYCORE_1GB = stm32mp157c-phycore-som-1gib.dts
 flavor_dts_file-157D_DK1 = stm32mp157d-dk1.dts
 flavor_dts_file-157D_ED1 = stm32mp157d-ed1.dts
 flavor_dts_file-157D_EV1 = stm32mp157d-ev1.dts
 flavor_dts_file-157F_DK2 = stm32mp157f-dk2.dts
 flavor_dts_file-157F_ED1 = stm32mp157f-ed1.dts
 flavor_dts_file-157F_EV1 = stm32mp157f-ev1.dts
+flavor_dts_file-157F_PHYCORE_1GB = stm32mp157f-phycore-som-1gib.dts
 
 flavor_dts_file-135F_DK = stm32mp135f-dk.dts
+flavor_dts_file-135F_PHYCORE_1GB = stm32mp135f-phycore-som-1gib.dts
+flavor_dts_file-135F_PHYCORE_512MB = stm32mp135f-phycore-som-512mb.dts
 
 flavorlist-cryp-512M = $(flavor_dts_file-157C_DK2) \
 		       $(flavor_dts_file-157F_DK2) \
-		       $(flavor_dts_file-135F_DK)
+		       $(flavor_dts_file-135F_DK) \
+		       $(flavor_dts_file-135F_PHYCORE_512MB)
 
 flavorlist-no_cryp-512M = $(flavor_dts_file-157A_DK1) \
-			  $(flavor_dts_file-157D_DK1)
+			  $(flavor_dts_file-153A_PHYCORE_512MB)
+
 
 flavorlist-cryp-1G = $(flavor_dts_file-157C_DHCOM_PDK2) \
 		     $(flavor_dts_file-157C_ED1) \
 		     $(flavor_dts_file-157C_EV1) \
 		     $(flavor_dts_file-157F_ED1) \
-		     $(flavor_dts_file-157F_EV1)
+		     $(flavor_dts_file-157F_EV1) \
+		     $(flavor_dts_file-135F_PHYCORE_1GB) \
+		     $(flavor_dts_file-157C_PHYCORE_1GB) \
+		     $(flavor_dts_file-157F_PHYCORE_1GB)
 
 flavorlist-no_cryp-1G = $(flavor_dts_file-157A_ED1) \
 			$(flavor_dts_file-157A_EV1) \
@@ -48,18 +58,23 @@ flavorlist-MP15 = $(flavor_dts_file-157A_DHCOR_AVENGER96) \
 		  $(flavor_dts_file-157A_DK1) \
 		  $(flavor_dts_file-157A_ED1) \
 		  $(flavor_dts_file-157A_EV1) \
+                  $(flavor_dts_file-153A_PHYCORE_512MB) \
 		  $(flavor_dts_file-157C_DHCOM_PDK2) \
 		  $(flavor_dts_file-157C_DK2) \
 		  $(flavor_dts_file-157C_ED1) \
 		  $(flavor_dts_file-157C_EV1) \
+                  $(flavor_dts_file-157C_PHYCORE_1GB) \
 		  $(flavor_dts_file-157D_DK1) \
 		  $(flavor_dts_file-157D_ED1) \
 		  $(flavor_dts_file-157D_EV1) \
 		  $(flavor_dts_file-157F_DK2) \
 		  $(flavor_dts_file-157F_ED1) \
-		  $(flavor_dts_file-157F_EV1)
+		  $(flavor_dts_file-157F_EV1) \
+		  $(flavor_dts_file-157F_PHYCORE_1GB)
 
-flavorlist-MP13 = $(flavor_dts_file-135F_DK)
+flavorlist-MP13 = $(flavor_dts_file-135F_DK) \
+		  $(flavor_dts_file-135F_PHYCORE_1GB) \
+		  $(flavor_dts_file-135F_PHYCORE_512MB)
 
 # External device tree default path
 CFG_EXT_DTS ?= $(arch-dir)/dts/external-dt/optee
