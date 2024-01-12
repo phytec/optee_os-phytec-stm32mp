@@ -202,7 +202,7 @@
 		CLK_ETH1_PLL4P
 		CLK_ETH2_PLL4P
 		CLK_SDMMC1_PLL4P
-		CLK_SDMMC2_PLL4P
+		CLK_SDMMC2_PLL3R
 		CLK_STGEN_HSE
 		CLK_USBPHY_HSE
 		CLK_SPI1_PLL4P
@@ -251,10 +251,9 @@
 			divmn = < 2 65 >;
 			frac = < 0x1400 >;
 		};
-		pll3_vco_417Mhz: pll3-vco-417Mhz {
+		pll3_vco_624Mhz: pll3-vco-624Mhz {
 			src = < CLK_PLL3_HSE >;
-			divmn = < 1 33 >;
-			frac = < 0x1a04 >;
+			divmn = < 1 51 >;
 		};
 		pll4_vco_600Mhz: pll4-vco-600Mhz {
 			src = < CLK_PLL4_HSE >;
@@ -267,18 +266,19 @@
 		reg = <0>;
 
 		st,pll = < &pll1_cfg1 >;
-
+		/* VCO = 1300.0 MHz => P = 650 (CPU) */
 		pll1_cfg1: pll1_cfg1 {
 			st,pll_vco = < &pll1_vco_1300Mhz >;
 			st,pll_div_pqr = < 0 1 1 >;
 		};
-
+		/* VCO = 2000.0 MHz => P = 1000 (CPU) */
 		pll1_cfg2: pll1_cfg2 {
 			st,pll_vco = < &pll1_vco_2000Mhz >;
 			st,pll_div_pqr = < 0 1 1 >;
 		};
 	};
 
+	/* VCO = 1066.0 MHz => P = 266 (AXI), Q = 266, R = 533 (DDR) */
 	pll2:st,pll@1 {
 		compatible = "st,stm32mp1-pll";
 		reg = <1>;
@@ -291,6 +291,7 @@
 		};
 	};
 
+	/* VCO = 624 MHz => P = 208, Q = 24, R = 104 */
 	pll3:st,pll@2 {
 		compatible = "st,stm32mp1-pll";
 		reg = <2>;
@@ -298,11 +299,12 @@
 		st,pll = < &pll3_cfg1 >;
 
 		pll3_cfg1: pll3_cfg1 {
-			st,pll_vco = < &pll3_vco_417Mhz >;
-			st,pll_div_pqr = < 1 16 36 >;
+			st,pll_vco = < &pll3_vco_624Mhz >;
+			st,pll_div_pqr = < 2 25 5 >;
 		};
 	};
 
+	/* VCO = 600.0 MHz => P = 50, Q = 10, R = 50 */
 	pll4:st,pll@3 {
 		compatible = "st,stm32mp1-pll";
 		reg = <3>;
