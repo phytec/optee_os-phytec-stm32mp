@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (C) 2020 PHYTEC Messtechnik GmbH
+ * Author: Dom Vovard <dom.vovard@linrt.com>
+ *	   Christophe Parant <c.parant@phytec.fr>
+ */
+
+/dts-v1/;
+
+/* ATF Specific */
+#include <dt-bindings/clock/stm32mp1-clksrc.h>
+#include <dt-bindings/power/stm32mp1-power.h>
+#include "stm32mp157.dtsi"
+#include "stm32mp15xf.dtsi"
+#include "stm32mp15xx-phycore-som.dtsi"
+
+/ {
+	model = "PHYTEC phyCORE-STM32MP157F with eMMC and 1GiB RAM";
+	compatible = "phytec,stm32mp157f-phycore-som-emmc-1gib",
+		     "phytec,stm32mp157f-phycore-som.dtsi", "st,stm32mp157";
+
+	memory@c0000000 {
+		device_type = "memory";
+		reg = <0xc0000000 0x40000000>;
+	};
+};
