@@ -11,13 +11,13 @@
 #include <dt-bindings/clock/stm32mp1-clksrc.h>
 #include <dt-bindings/power/stm32mp1-power.h>
 #include "stm32mp157.dtsi"
-#include "stm32mp15xc.dtsi"
+#include "stm32mp15xf.dtsi"
 #include "stm32mp15xx-phycore-som.dtsi"
 
 / {
-	model = "PHYTEC phyCORE-STM32MP157C with eMMC and 1GiB RAM";
-	compatible = "phytec,stm32mp157c-phycore-som-emmc-1gib",
-		     "phytec,stm32mp157c-phycore-som.dtsi", "st,stm32mp157";
+	model = "PHYTEC phyCORE-STM32MP157F 1GiB RAM";
+	compatible = "phytec,stm32mp157f-phycore-som-1gib",
+		     "phytec,stm32mp157f-phycore-som", "st,stm32mp157";
 
 	memory@c0000000 {
 		device_type = "memory";
