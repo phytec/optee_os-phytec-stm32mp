@@ -5,7 +5,6 @@
  */
 
 #include "stm32mp13xx-phycore-som-pinctrl.dtsi"
-#include <dt-bindings/soc/stm32mp13-etzpc.h>
 #include <dt-bindings/soc/stm32mp-tzc400-macro.h>
 #include <dt-bindings/soc/stm32mp13-tzc400.h>
 #include <dt-bindings/power/stm32mp1-power.h>
@@ -31,15 +30,14 @@
 	};
 
 	vddcpu: vddcpu {
-		compatible = "st,stm32-regulator-gpio";
+		compatible = "regulator-gpio";
 		regulator-name = "vddcpu";
 		regulator-min-microvolt = <1250000>;
 		regulator-max-microvolt = <1350000>;
 		regulator-always-on;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&vddcpu_pins_a>;
-		st,voltage_pin_index = <0>;
+		gpios = <&gpioc 13 (GPIO_ACTIVE_HIGH | GPIO_STM32_NSEC)>;
 
 		states = <1250000 0x0>,<1350000 0x1>;
 
@@ -170,19 +168,12 @@
 	vdd_3v3_usbfs-supply = <&vdd_usb>;
 };
 
-&scmi_regu {
-	scmi_vddcpu: voltd-vddcpu {
-		voltd-name = "vddcpu";
-		regulator-name = "vddcpu";
-	};
-	scmi_vdd: voltd-vdd {
-		voltd-name = "vdd";
-		regulator-name = "vdd";
-	};
-	scmi_vdd_usb: volt-vdd_usb {
-		voltd-name = "vdd_usb";
-		regulator-name = "vdd_usb";
-	};
+&sdmmc1_io {
+	vddsd1-supply = <&vdd>;
+};
+
+&sdmmc2_io {
+	vddsd2-supply = <&vdd>;
 };
 
 &rcc{

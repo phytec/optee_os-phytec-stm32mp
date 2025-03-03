@@ -29,15 +29,6 @@
 		};
 	};
 
-	vddcpu_pins_a: vddcpu_a-0 {
-		pins {
-			pinmux = <STM32_PINMUX('C', 13, RSVD)>; /* X_OD_OPP */
-			bias-disable;
-			drive-push-pull;
-			slew-rate = <0>;
-		};
-	};
-
 	wakeup_pins: wakeup_pins {
 		wakeup_pin_1: pins1 {
 			pinmux = <STM32_PINMUX('F', 8, GPIO)>;
