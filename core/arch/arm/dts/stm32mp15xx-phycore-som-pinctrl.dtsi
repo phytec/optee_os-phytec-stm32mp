@@ -11,13 +11,13 @@
 
 	uart4_pins_a: uart4-0 {
 		pins1 {
-			pinmux = <STM32_PINMUX('B', 9, AF8)>; /* UART4_TX */
+			pinmux = <STM32_PINMUX_NSEC('B', 9, AF8)>; /* UART4_TX */
 			bias-disable;
 			drive-push-pull;
 			slew-rate = <0>;
 		};
 		pins2 {
-			pinmux = <STM32_PINMUX('B', 2, AF8)>; /* UART4_RX */
+			pinmux = <STM32_PINMUX_NSEC('B', 2, AF8)>; /* UART4_RX */
 			bias-disable;
 		};
 	};
@@ -40,8 +40,8 @@
 
 	i2c4_pins_a: i2c4-0 {
 		pins {
-			pinmux = <STM32_PINMUX('Z', 4, AF6)>, /* I2C4_SCL */
-				 <STM32_PINMUX('Z', 5, AF6)>; /* I2C4_SDA */
+			pinmux = <STM32_PINMUX_NSEC('Z', 4, AF6)>, /* I2C4_SCL */
+				 <STM32_PINMUX_NSEC('Z', 5, AF6)>; /* I2C4_SDA */
 			bias-disable;
 			drive-open-drain;
 			slew-rate = <0>;
