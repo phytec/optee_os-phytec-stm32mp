@@ -3183,7 +3183,7 @@ static void clk_stm32_pm_enable_ker_clocks(void)
 static void clear_rcc_reset_status(void)
 {
 	/* Clear reset status fields */
-	io_write32(stm32_rcc_base() + RCC_MP_RSTSCLRR, 0);
+	io_write32(stm32_rcc_base() + RCC_MP_RSTSCLRR, ~0);
 }
 
 static struct stm32_pll_dt_cfg stm32_pll_backup_state[PLL_NB];
@@ -3398,7 +3398,6 @@ static void __maybe_unused stm32_clock_suspend(void)
 	clk_stm32_pm_backup_all_div();
 	clk_stm32_pm_backup_all_pll();
 	clk_stm32_pm_enable_ker_clocks();
-	clear_rcc_reset_status();
 }
 
 static void __maybe_unused stm32_clock_resume(void)
@@ -3428,6 +3427,7 @@ static TEE_Result stm32_clock_pm(enum pm_op op, unsigned int pm_hint,
 			stm32mp1_clk_save_context_for_stop();
 			standby_prepared = 0;
 		}
+		clear_rcc_reset_status();
 	} else {
 		/* back from standby */
 		if (standby_prepared)
