@@ -3,10 +3,12 @@ flavor_dts_file-235F_DK = stm32mp235f-dk.dts
 flavor_dts_file-257F_DK = stm32mp257f-dk.dts
 flavor_dts_file-257F_EV1 = stm32mp257f-ev1.dts
 flavor_dts_file-257F_PHYFLEX = stm32mp257f-phyflex-fpsc-g-som.dts
+flavor_dts_file-257F_PHYFLEX_4Gb = stm32mp257f-phyflex-fpsc-g-som-4Gb.dts
 
 flavorlist-MP25 = $(flavor_dts_file-257F_DK) \
 		  $(flavor_dts_file-257F_EV1) \
-		  $(flavor_dts_file-257F_PHYFLEX)
+		  $(flavor_dts_file-257F_PHYFLEX) \
+		  $(flavor_dts_file-257F_PHYFLEX_4Gb)
 
 flavorlist-MP23 = $(flavor_dts_file-235F_DK)
 
