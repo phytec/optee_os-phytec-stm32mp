@@ -74,6 +74,25 @@ void tfm_mbx_signal_msg_message(fwk_id_t device_id, void *in_buf,
 }
 #endif
 
+#ifdef BUILD_HAS_MOD_MSG_SMT
+void tfm_mbx_signal_smt_reset(fwk_id_t device_id)
+{
+    struct mbx_device_ctx *device_ctx;
+    unsigned int device_idx = fwk_id_get_element_idx(device_id);
+
+    if (device_idx < mbx_ctx.device_count) {
+        device_ctx = &mbx_ctx.device_ctx_table[device_idx];
+
+        fwk_assert(fwk_id_get_module_idx(device_ctx->shmem_id) ==
+                   FWK_MODULE_IDX_MSG_SMT);
+
+        if (!device_ctx->shmem_api.smt->signal_reset(device_ctx->shmem_id))
+            return;
+    }
+    fwk_unexpected();
+}
+#endif
+
 int tfm_mbx_get_devices_count(void)
 {
     return mbx_ctx.device_count;

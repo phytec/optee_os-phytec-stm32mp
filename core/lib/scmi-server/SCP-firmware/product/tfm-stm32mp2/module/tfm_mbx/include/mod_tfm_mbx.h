@@ -53,6 +53,13 @@ fwk_id_t tfm_mbx_get_device(unsigned int id);
  */
 void tfm_mbx_signal_smt_message(fwk_id_t device_id);
 
+/*!
+ * \brief Signal a reset request in a static shared memory.
+ *
+ * \param device_id MBX device ID.
+ */
+void tfm_mbx_signal_smt_reset(fwk_id_t device_id);
+
 /*  */
 /*!
  * \brief Signal an incoming SCMI message in an OP-TEE dynamic shared memory.

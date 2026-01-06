@@ -109,6 +109,17 @@ struct mod_tfm_smt_driver_input_api {
      *      errors.
      */
     int (*signal_message)(fwk_id_t channel_id);
+
+    /*!
+     * \brief Signal a mailbox reset
+     *
+     * \param device_id Channel identifier
+     *
+     * \retval ::FWK_SUCCESS The operation succeeded.
+     * \return One of the standard error codes for implementation-defined
+     *      errors.
+     */
+    int (*signal_reset)(fwk_id_t channel_id);
 };
 
 /*!

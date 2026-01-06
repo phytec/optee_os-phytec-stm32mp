@@ -110,3 +110,18 @@ void scmi_process_mbx_msg(unsigned int fwk_id, void *in_buf, size_t in_size,
     fwk_log_flush();
 #endif
 }
+
+void scmi_process_reset_smt(unsigned int fwk_id)
+{
+#ifdef BUILD_HAS_MOD_MSG_SMT
+    fwk_id_t device_id;
+
+    device_id.value = fwk_id;
+
+    tfm_mbx_signal_smt_reset(device_id);
+
+    fwk_process_event_queue();
+
+    fwk_log_flush();
+#endif
+}

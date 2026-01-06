@@ -38,6 +38,12 @@ extern int scmi_get_devices_count(void);
 extern int scmi_get_device(unsigned int id);
 
 /*!
+ * \brief Reset the channel on the channel id.
+ *
+ */
+extern void scmi_process_reset_smt(unsigned int id);
+
+/*!
  * \brief Add new event to process on the channel id.
  *
  */
