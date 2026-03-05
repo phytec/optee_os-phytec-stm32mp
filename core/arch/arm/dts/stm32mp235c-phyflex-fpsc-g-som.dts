@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause)
+/*
+ * Copyright (C) 2025 PHYTEC Messtechnik GmbH
+ * Authors: Christophe Parant <c.parant@phytec.fr>
+ *          Nicolas Raimundo <n.raimundo@phytec.fr>
+ */
+
+/dts-v1/;
+
+#include "stm32mp235.dtsi"
+#include "stm32mp23xc.dtsi"
+#include "stm32mp23-st-scmi-cfg.dtsi"
+#include "stm32mp2-phyflex-fpsc-g-som.dtsi"
+#include "stm32mp235c-phyflex-fpsc-g-som-rcc.dtsi"
+#include "stm32mp235c-phyflex-fpsc-g-som-resmem.dtsi"
+#include "stm32mp235c-phyflex-fpsc-g-som-rif.dtsi"
+
+/ {
+	model = "PHYTEC phyFLEX-STM32MP235C FPSC-Gamma";
+	compatible = "phytec,stm32mp235c-phyflex-fpsc-g-som",
+		     "st,stm32mp235";
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x0 0x80000000 0x0 0x40000000>;
+	};
+};
+
+&pka {
+	status = "okay";
+};
+
+&rcc {
+	st,c1msrd = <2>;
+	st,clk_opp {
+		st,ck_cpu1 {
+			cfg_1 {
+				hz = <1500000000>;
+				st,pll = <&pll1_cfg_1500Mhz>;
+			};
+
+			cfg_2 {
+				hz = <1200000000>;
+				st,pll = <&pll1_cfg_1200Mhz>;
+			};
+		};
+		st,ck_gpu {
+			cfg_1 {
+				hz = <400000000>;
+				st,pll = <&pll3_cfg_400Mhz>;
+			};
+		};
+	};
+};
+
+&saes {
+	status = "okay";
+};
