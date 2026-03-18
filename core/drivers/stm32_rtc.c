@@ -276,6 +276,12 @@ static void stm32_rtc_read_calendar(struct stm32_rtc_calendar *calendar)
 	calendar->ssr = io_read32(rtc_base + RTC_SSR);
 	calendar->tr = io_read32(rtc_base + RTC_TR);
 	calendar->dr = io_read32(rtc_base + RTC_DR);
+
+	/*
+	 * Reading this register after SSR, TR and DR was read avoids a watchdog
+	 * issue on Standby mode
+	 */
+	io_read32(rtc_base + RTC_ICSR);
 }
 
 /* Fill the RTC timestamp structure from a given RTC time-in-day value */
