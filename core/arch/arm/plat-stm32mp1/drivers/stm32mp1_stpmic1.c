@@ -459,7 +459,7 @@ static TEE_Result pmic_list_voltages(struct regulator *regulator,
 	return TEE_SUCCESS;
 }
 
-static TEE_Result pmic_regu_pm(enum pm_op op, uint32_t pm_hint __unused,
+static TEE_Result pmic_regu_pm(enum pm_op op, uint32_t pm_hint,
 			       const struct pm_callback_handle *pm_handle)
 {
 	struct regulator *regulator = pm_handle->handle;
@@ -470,7 +470,8 @@ static TEE_Result pmic_regu_pm(enum pm_op op, uint32_t pm_hint __unused,
 	 * to ensure it is enabled after standby when the boot-rom reloads
 	 * the binaries.
 	 */
-	if (priv->flags & PMIC_REGU_FLAG_WARM_BOOT_ON) {
+	if ((priv->flags & PMIC_REGU_FLAG_WARM_BOOT_ON) &&
+	    PM_HINT_IS_STATE(pm_hint, CONTEXT)) {
 		TEE_Result res = TEE_ERROR_GENERIC;
 
 		if (op == PM_OP_SUSPEND)
