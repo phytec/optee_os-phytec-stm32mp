@@ -95,10 +95,10 @@
 &adc_2 {
 	vdda-supply = <&vdd_adc>;
 	vref-supply = <&vdd_adc>;
-	status = "okay";
+	status = "disabled";
 
 	adc2: adc@0 {
-		status = "okay";
+		status = "disabled";
 
 		channel@15 {
 			reg = <15>;
