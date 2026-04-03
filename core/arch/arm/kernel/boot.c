@@ -1184,6 +1184,10 @@ static bool cpu_nmfi_enabled(void)
 #endif
 }
 
+void __weak plat_dt_patch(void)
+{
+}
+
 /*
  * Note: this function is weak just to make it possible to exclude it from
  * the unpaged area.
@@ -1199,6 +1203,9 @@ void __weak boot_init_primary_late(unsigned long fdt,
 	if (IS_ENABLED(CFG_CORE_SEL2_SPMC))
 		manifest = (unsigned long)get_manifest_dt();
 	init_manifest_dt(manifest);
+
+	plat_dt_patch();
+
 #ifdef CFG_CORE_SEL1_SPMC
 	tpm_map_log_area(get_manifest_dt());
 #else
