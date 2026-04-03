@@ -65,6 +65,7 @@ void init_sec_mon(unsigned long nsec_entry);
 void init_tee_runtime(void);
 
 /* weak routines eventually overridden by platform */
+void plat_dt_patch(void);
 void plat_cpu_reset_early(void);
 void plat_primary_init_early(void);
 unsigned long plat_get_aslr_seed(void);
