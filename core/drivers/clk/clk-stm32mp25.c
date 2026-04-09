@@ -4074,9 +4074,10 @@ static STM32_GATE(ck_icn_p_dcmipp, &ck_icn_apb4, 0, GATE_DCMIPP);
 static STM32_GATE(ck_icn_p_lvds, &ck_icn_apb4, 0, GATE_LVDS);
 
 #if defined(CFG_STM32MP25)
-static STM32_GATE(ck_icn_p_gicv2m, &ck_icn_apb4, CLK_IS_CRITICAL, GATE_GICV2M);
+static STM32_GATE_PM(ck_icn_p_gicv2m, &ck_icn_apb4, CLK_IS_CRITICAL,
+		     GATE_GICV2M);
 #else
-static STM32_GATE(ck_icn_p_gicv2m, &ck_icn_apb4, 0, GATE_GICV2M);
+static STM32_GATE_PM(ck_icn_p_gicv2m, &ck_icn_apb4, 0, GATE_GICV2M);
 #endif
 
 static STM32_GATE(ck_icn_p_usbtc, &ck_icn_apb4, 0, GATE_USBTC);
