@@ -21,6 +21,7 @@
 		interrupts = <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&rcc CK_BUS_CRYP2>;
 		resets = <&rcc CRYP2_R>;
+		access-controllers = <&rifsc STM32MP25_RIFSC_CRYP2_ID>;
 		status = "disabled";
 	};
 
