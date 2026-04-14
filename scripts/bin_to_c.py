@@ -49,9 +49,9 @@ def main():
     f.write('#include <compiler.h>\n')
     f.write('#include <stdint.h>\n')
     if args.text:
-        f.write('__extension__ const char ' + args.vname + '[] = {\n')
+        f.write('__extension__ char ' + args.vname + '[] = {\n')
     else:
-        f.write('__extension__ const uint8_t ' + args.vname + '[] ' +
+        f.write('__extension__ uint8_t ' + args.vname + '[] ' +
                 ' __aligned(__alignof__(uint64_t)) = {\n')
     i = 0
     while i < size:
