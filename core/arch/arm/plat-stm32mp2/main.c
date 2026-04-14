@@ -71,6 +71,110 @@ register_phys_mem(MEM_AREA_RAM_SEC, SRAM1_BASE, SIZE_4K);
 #define _ID2STR(id)		(#id)
 #define ID2STR(id)		_ID2STR(id)
 
+enum {
+	EEPROM_RAM_SIZE_512MB_32 = '0',
+	EEPROM_RAM_SIZE_1GB_32 = '1',
+	EEPROM_RAM_SIZE_2GB_32 = '2',
+	EEPROM_RAM_SIZE_4GB_32 = '3',
+	EEPROM_RAM_SIZE_512MB_16 = '4',
+	EEPROM_RAM_SIZE_1GB_16 = '5',
+	EEPROM_RAM_SIZE_2GB_16 = '6',
+};
+
+void plat_dt_patch(void)
+{
+	uint32_t tamp_val;
+	uint8_t ram_val;
+	vaddr_t tamp_vbase;
+	void *fdt_curr;
+	int node;
+	int node_linuxkernel2;
+	uint32_t phandle_fdt, phandle_cpu;
+	const uint32_t *phandle_tab;
+	uint32_t phandle_tab_new[13];
+	uint32_t reg_cells[4];
+	int len;
+	int ret;
+
+	tamp_vbase = (vaddr_t)phys_to_virt_io(TAMP_BASE,0x400);
+
+	tamp_val = io_read32(tamp_vbase + TAMP_CONFIG_PHYTEC);
+
+	if (tamp_val == 0xFFFFFFFF || tamp_val == 0x00000000)
+	{
+		IMSG("Using default device tree");
+		return;
+	}
+
+	ram_val =  ((tamp_val >> 16) & 0xFF);
+
+	fdt_curr = get_embedded_dt();
+
+	ret = fdt_open_into(fdt_curr, fdt_curr, CFG_DTB_MAX_SIZE);
+
+	if (ret < 0)
+	{
+		IMSG("Using default device tree");
+		return;
+	}
+
+	node = fdt_node_offset_by_prop_value(fdt_curr, -1, "device_type", "memory", 7);
+	if (node >= 0 && ram_val != EEPROM_RAM_SIZE_2GB_32 && ram_val != EEPROM_RAM_SIZE_2GB_16) {
+		reg_cells[0] = cpu_to_fdt32(0x00000000);
+		reg_cells[1] = cpu_to_fdt32(0x80000000);
+		if (ram_val == EEPROM_RAM_SIZE_4GB_32)
+		{
+			IMSG("Reconfigure RAM to 4GB");
+			reg_cells[2] = cpu_to_fdt32(0x1);
+			reg_cells[3] = cpu_to_fdt32(0x00000000);
+		}
+		else if (ram_val == EEPROM_RAM_SIZE_1GB_32 || ram_val == EEPROM_RAM_SIZE_1GB_16)
+		{
+			IMSG("Reconfigure RAM to 1GB");
+			reg_cells[2] = cpu_to_fdt32(0x00000000);
+			reg_cells[3] = cpu_to_fdt32(0x40000000);
+		}
+		else if (ram_val == EEPROM_RAM_SIZE_512MB_32 || ram_val == EEPROM_RAM_SIZE_512MB_16)
+		{
+			IMSG("Reconfigure RAM to 512MB");
+			reg_cells[2] = cpu_to_fdt32(0x00000000);
+			reg_cells[3] = cpu_to_fdt32(0x20000000);
+		}
+		else
+		{
+			IMSG("Default RAM configuration");
+		}
+		ret = fdt_setprop(fdt_curr, node, "reg", reg_cells, sizeof(reg_cells));
+
+		if (ret < 0)
+		{
+			EMSG("Cannot reconfigure the RAM");
+			return;
+		}
+    }
+
+    node = fdt_node_offset_by_prop_value(fdt_curr, -1, "compatible", "st,stm32mp25-risaf-enc", 23);
+	if (node >= 0 && ram_val == EEPROM_RAM_SIZE_4GB_32)
+	{
+		node_linuxkernel2 = fdt_path_offset(fdt_curr, "/reserved-memory/linuxkernel2@100000000");
+		if (node_linuxkernel2 >= 0 )
+		{
+			phandle_cpu = fdt_get_phandle(fdt_curr, node_linuxkernel2);
+			phandle_fdt = cpu_to_fdt32(phandle_cpu);
+			phandle_tab = fdt_getprop(fdt_curr, node, "memory-region", &len);
+			memcpy(phandle_tab_new, phandle_tab, len);
+			phandle_tab_new[len/sizeof(uint32_t)-1] = phandle_fdt;
+			ret = fdt_setprop(fdt_curr, node, "memory-region", phandle_tab_new, len);
+
+			if (ret < 0)
+			{
+				EMSG("Cannot reconfigure the RAM");
+				return;
+			}
+		}
+	}
+}
+
 static TEE_Result platform_banner(void)
 {
 	IMSG("Platform stm32mp2: flavor %s - DT %s", ID2STR(PLATFORM_FLAVOR),
