@@ -118,8 +118,18 @@
 			no-map;
 		};
 
+		linuxkernel1_1gb: linuxkernel1-1gb@84000000 {
+			reg = <0x0 0x84000000 0x0 0x36800000>;
+			no-map;
+		};
+
 		gpu_reserved: gpu-reserved@fa800000 {
 			reg = <0x0 0xfa800000 0x0 0x4000000>;
+			no-map;
+		};
+
+		gpu_reserved_1gb: gpu-reserved-1gb@ba800000 {
+			reg = <0x0 0xba800000 0x0 0x4000000>;
 			no-map;
 		};
 
@@ -128,9 +138,29 @@
 			no-map;
 		};
 
+		ltdc_sec_layer_1gb: ltdc-sec-layer-1gb@be800000 {
+			reg = <0x0 0xbe800000 0x0 0x800000>;
+			no-map;
+		};
+
 		ltdc_sec_rotation: ltdc-sec-rotation@ff000000 {
 			reg = <0x0 0xff000000 0x0 0x1000000>;
 			no-map;
 		};
+
+		ltdc_sec_rotation_1gb: ltdc-sec-rotation-1gb@bf000000 {
+			reg = <0x0 0xbf000000 0x0 0x1000000>;
+			no-map;
+		};
+
+		linuxkernel2: linuxkernel2@100000000 {
+			reg = <0x1 0x00000000 0x0 0x80000000>;
+			no-map;
+		};
+	};
+
+	alternative-memory {
+		memory-region = <&linuxkernel1_1gb>, <&gpu_reserved_1gb>, <&ltdc_sec_layer_1gb>, <&ltdc_sec_rotation_1gb>,
+		<&linuxkernel2>;
 	};
 };
