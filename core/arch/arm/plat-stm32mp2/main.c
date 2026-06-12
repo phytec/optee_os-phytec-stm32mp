@@ -72,6 +72,16 @@ register_phys_mem(MEM_AREA_RAM_SEC, SRAM1_BASE, SIZE_4K);
 #define ID2STR(id)		_ID2STR(id)
 
 enum {
+	EEPROM_PROCESSOR_MP231 = '0',
+	EEPROM_PROCESSOR_MP251 = '1',
+	EEPROM_PROCESSOR_MP233 = '2',
+	EEPROM_PROCESSOR_MP253 = '3',
+	EEPROM_PROCESSOR_MP235 = '4',
+	EEPROM_PROCESSOR_MP255 = '5',
+	EEPROM_PROCESSOR_MP257 = '7',
+};
+
+enum {
 	EEPROM_RAM_SIZE_512MB_32 = '0',
 	EEPROM_RAM_SIZE_1GB_32 = '1',
 	EEPROM_RAM_SIZE_2GB_32 = '2',
@@ -85,6 +95,7 @@ void plat_dt_patch(void)
 {
 	uint32_t tamp_val;
 	uint8_t ram_val;
+	uint8_t cpu_val;
 	vaddr_t tamp_vbase;
 	void *fdt_curr;
 	int node;
@@ -93,6 +104,11 @@ void plat_dt_patch(void)
 	int node_gpu_reserved;
 	int node_ltdc_sec_layer;
 	int node_ltdc_sec_rotation;
+	int node_cpu1;
+	int node_gpu_opp_table;
+	int node_gpu;
+	int node_ck_gpu;
+	int node_clk_opp;
 	uint32_t phandle_fdt, phandle_cpu;
 	const uint32_t *phandle_tab;
 	uint32_t phandle_tab_new[13];
@@ -110,7 +126,8 @@ void plat_dt_patch(void)
 		return;
 	}
 
-	ram_val =  ((tamp_val >> 16) & 0xFF);
+	ram_val = ((tamp_val >> 16) & 0xFF);
+	cpu_val = (tamp_val & 0xFF);
 
 	fdt_curr = get_embedded_dt();
 
@@ -221,6 +238,67 @@ void plat_dt_patch(void)
 		{
 			EMSG("Cannot reconfigure the RAM");
 			return;
+		}
+	}
+
+	if (cpu_val != EEPROM_PROCESSOR_MP257 && cpu_val != EEPROM_PROCESSOR_MP255 && cpu_val != EEPROM_PROCESSOR_MP235)
+	{
+		node_gpu = fdt_path_offset(fdt_curr, "/soc@0/bus@42080000/gpu@48280000");
+
+		if (node_gpu >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_gpu, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot disabled gpu node: %d", ret);
+			}
+		}
+
+		node_ck_gpu = fdt_path_offset(fdt_curr, "/soc@0/rcc@44200000/st,clk_opp/st,ck_gpu");
+
+		if (node_ck_gpu >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_ck_gpu, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot disabled node_ck_gpu node: %d", ret);
+			}
+		}
+
+		node_gpu_opp_table = fdt_path_offset(fdt_curr, "/opp-table-gpu");
+
+		if (node_gpu_opp_table >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_gpu_opp_table, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot disabled opp-table-gpu node: %d", ret);
+			}
+		}
+	}
+
+	if (cpu_val == EEPROM_PROCESSOR_MP251 || cpu_val == EEPROM_PROCESSOR_MP231)
+	{
+		node_cpu1 = fdt_path_offset(fdt_curr, "/cpus/cpu@1");
+
+		if (node_cpu1 >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_cpu1, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot disabled cpu@1 node: %d", ret);
+			}
+		}
+
+		node_clk_opp = fdt_path_offset(fdt_curr, "/soc@0/rcc@44200000/st,clk_opp/st,ck_cpu1");
+
+		if (node_clk_opp >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_clk_opp, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot disabled st,clk_opp node: %d", ret);
+			}
 		}
 	}
 }
