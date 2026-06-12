@@ -9,6 +9,7 @@
 / {
 	gpu_opp_table: opp-table-gpu {
 		compatible = "operating-points-v2";
+		status = "okay";
 
 		opp-400000000 {
 			opp-hz = /bits/ 64 <400000000>;
@@ -23,6 +24,7 @@
 	gpu: gpu@48280000 {
 		compatible = "vivante,gc";
 		reg = <0x48280000 0x800>;
+		status = "okay";
 		gpu-supply = <&vddgpu>;
 		clocks = <&rcc CK_KER_GPU>;
 		operating-points-v2 = <&gpu_opp_table>;
