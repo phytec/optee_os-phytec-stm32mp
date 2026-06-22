@@ -95,6 +95,7 @@ void plat_dt_patch(void)
 {
 	uint32_t tamp_val;
 	uint8_t ram_val;
+	uint8_t fac_val;
 	uint8_t cpu_val;
 	vaddr_t tamp_vbase;
 	void *fdt_curr;
@@ -109,6 +110,8 @@ void plat_dt_patch(void)
 	int node_gpu;
 	int node_ck_gpu;
 	int node_clk_opp;
+	int node_saes;
+	int node_pka;
 	uint32_t phandle_fdt, phandle_cpu;
 	const uint32_t *phandle_tab;
 	uint32_t phandle_tab_new[13];
@@ -127,6 +130,7 @@ void plat_dt_patch(void)
 	}
 
 	ram_val = ((tamp_val >> 16) & 0xFF);
+	fac_val = ((tamp_val >> 8) & 0xFF);
 	cpu_val = (tamp_val & 0xFF);
 
 	fdt_curr = get_embedded_dt();
@@ -298,6 +302,31 @@ void plat_dt_patch(void)
 			if (ret < 0)
 			{
 				EMSG("Cannot disabled st,clk_opp node: %d", ret);
+			}
+		}
+	}
+
+	if (fac_val != 'C' && fac_val != 'F')
+	{
+		node_saes = fdt_path_offset(fdt_curr, "/soc@0/bus@42080000/saes@42050000");
+
+		if (node_saes >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_saes, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot remove soc@0/bus@42080000/saes@42050000 %d", ret);
+			}
+		}
+
+		node_pka = fdt_path_offset(fdt_curr, "/soc@0/bus@42080000/pka@42060000");
+
+		if (node_pka >= 0)
+		{
+			ret = fdt_setprop_inplace(fdt_curr, node_pka, "status", "fail", 5);
+			if (ret < 0)
+			{
+				EMSG("Cannot remove soc@0/bus@42080000/pka@42060000 %d", ret);
 			}
 		}
 	}
