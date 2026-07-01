@@ -324,6 +324,18 @@ static int smt_requester_handler(struct smt_channel_ctx *channel_ctx)
     return FWK_SUCCESS;
 }
 
+static int smt_reset_handler(struct smt_channel_ctx *channel_ctx)
+{
+    struct mod_tfm_smt_memory *memory;
+
+    memory = channel_ctx->mailbox_mem;
+    channel_ctx->tfm_smt_mailbox_ready = false;
+    memory->status = MOD_TFM_SMT_MAILBOX_STATUS_FREE_MASK;
+    channel_ctx->tfm_smt_mailbox_ready = true;
+
+    return FWK_SUCCESS;
+}
+
 static int smt_completer_handler(struct smt_channel_ctx *channel_ctx)
 {
     /* Commit to sending a response */
@@ -365,8 +377,35 @@ static int smt_signal_message(fwk_id_t channel_id)
     return FWK_SUCCESS;
 }
 
+static int smt_signal_reset(fwk_id_t channel_id)
+{
+    struct smt_channel_ctx *channel_ctx;
+
+    channel_ctx =
+        &smt_ctx.channel_ctx_table[fwk_id_get_element_idx(channel_id)];
+
+    /* Check if we are already processing */
+    if (channel_ctx->locked) {
+        return FWK_E_STATE;
+    }
+
+    switch (channel_ctx->config->type) {
+    case MOD_TFM_SMT_CHANNEL_TYPE_COMPLETER:
+        return FWK_E_ACCESS;
+    case MOD_TFM_SMT_CHANNEL_TYPE_REQUESTER:
+        return smt_reset_handler(channel_ctx);
+    default:
+        /* Invalid config */
+        fwk_unexpected();
+        break;
+    }
+
+    return FWK_SUCCESS;
+}
+
 static const struct mod_tfm_smt_driver_input_api driver_input_api = {
     .signal_message = smt_signal_message,
+    .signal_reset = smt_signal_reset,
 };
 
 /*

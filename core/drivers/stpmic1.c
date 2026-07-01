@@ -571,6 +571,31 @@ static const struct regul_struct regulators_table[] = {
 	},
 };
 
+/* Cache content of CONTROL and PWRCTRL register (BUCK1 to LDO6) */
+#define CACHE_REG_NB		(LDO6_PWRCTRL_REG - BUCK1_CONTROL_REG + 1)
+#define CACHE_REG_IDX(reg)	((reg) - BUCK1_CONTROL_REG)
+uint8_t stpmic1_cache_reg[CACHE_REG_NB];
+
+static void stpmic1_cache_set(uint8_t register_id,  uint8_t value)
+{
+	int index = CACHE_REG_IDX(register_id);
+
+	if (index >= 0 &&  index < (int)sizeof(stpmic1_cache_reg))
+		stpmic1_cache_reg[index] = value;
+}
+
+static int stpmic1_cache_get(uint8_t register_id,  uint8_t *value)
+{
+	int index = CACHE_REG_IDX(register_id);
+
+	if (index >= 0 &&  index < (int)sizeof(stpmic1_cache_reg)) {
+		*value = stpmic1_cache_reg[index];
+		return 0;
+	}
+
+	return -1;
+}
+
 static const struct regul_struct *get_regulator_data(const char *name)
 {
 	unsigned int i = 0;
@@ -633,21 +658,32 @@ int stpmic1_switch_off(void)
 				       SOFTWARE_SWITCH_OFF_ENABLED);
 }
 
-int stpmic1_regulator_enable(const char *name)
+static int stpmic1_regulator_set_enable(const char *name, bool enable)
 {
 	const struct regul_struct *regul = get_regulator_data(name);
+	uint8_t bit_mask = BIT(regul->enable_pos);
+	uint8_t bit_enable = enable ? bit_mask : 0;
+	int status = 0;
+
+	if (regul->low_power_reg) {
+		status = stpmic1_register_update(regul->low_power_reg,
+						 bit_enable, bit_mask);
+		if (status)
+			return status;
+	}
 
 	return stpmic1_register_update(regul->control_reg,
-				       BIT(regul->enable_pos),
-				       BIT(regul->enable_pos));
+				       bit_enable, bit_mask);
+}
+
+int stpmic1_regulator_enable(const char *name)
+{
+	return stpmic1_regulator_set_enable(name, true);
 }
 
 int stpmic1_regulator_disable(const char *name)
 {
-	const struct regul_struct *regul = get_regulator_data(name);
-
-	return stpmic1_register_update(regul->control_reg, 0,
-				       BIT(regul->enable_pos));
+	return stpmic1_regulator_set_enable(name, false);
 }
 
 bool stpmic1_is_regulator_enabled(const char *name)
@@ -678,17 +714,25 @@ int stpmic1_regulator_voltage_set(const char *name, uint16_t millivolts)
 	size_t voltage_index = voltage_to_index(name, millivolts);
 	const struct regul_struct *regul = get_regulator_data(name);
 	uint8_t mask = 0;
+	uint8_t value = 0;
+	int status = 0;
 
 	if (voltage_index == VOLTAGE_INDEX_INVALID)
 		return -1;
 
+	value = voltage_index << LDO_BUCK_VOLTAGE_SHIFT;
 	mask = find_plat_mask(name);
 	if (!mask)
 		return 0;
 
-	return stpmic1_register_update(regul->control_reg,
-				       voltage_index << LDO_BUCK_VOLTAGE_SHIFT,
-				       mask);
+	if (regul->low_power_reg) {
+		status = stpmic1_register_update(regul->low_power_reg, value,
+						 mask);
+		if (status)
+			return status;
+	}
+
+	return stpmic1_register_update(regul->control_reg, value, mask);
 }
 
 int stpmic1_regulator_mask_reset_set(const char *name)
@@ -830,22 +874,6 @@ int stpmic1_regulator_voltage_get(const char *name)
 	return regul->voltage_table[value];
 }
 
-int stpmic1_lp_copy_reg(const char *name)
-{
-	const struct regul_struct *regul = get_regulator_data(name);
-	uint8_t val = 0;
-	int status = 0;
-
-	if (!regul->low_power_reg)
-		return -1;
-
-	status = stpmic1_register_read(regul->control_reg, &val);
-	if (status)
-		return status;
-
-	return stpmic1_register_write(regul->low_power_reg, val);
-}
-
 bool stpmic1_regu_has_lp_cfg(const char *name)
 {
 	return get_regulator_data(name)->low_power_reg;
@@ -867,69 +895,69 @@ int stpmic1_lp_cfg(const char *name, struct stpmic1_lp_cfg *cfg)
 int stpmic1_lp_load_unpg(struct stpmic1_lp_cfg *cfg)
 {
 	uint8_t val = 0;
+	uint8_t lp_val = 0;
 	int status = 0;
 
 	assert(cfg->lp_reg);
 
 	status = stpmic1_register_read(cfg->ctrl_reg, &val);
+	lp_val =  (val & ~cfg->lp_mask) | cfg->lp_value;
 	if (!status)
-		status = stpmic1_register_write(cfg->lp_reg, val);
+		status = stpmic1_register_write(cfg->lp_reg, lp_val);
 
 	return status;
 }
 
-int stpmic1_lp_reg_on_off(const char *name, uint8_t enable)
+void stpmic1_lp_get_unpg(struct stpmic1_lp_cfg *cfg)
 {
-	const struct regul_struct *regul = get_regulator_data(name);
+	assert(cfg->lp_reg);
 
-	if (!regul->low_power_reg)
-		return -1;
+	cfg->lp_value = 0;
+	cfg->lp_mask = 0;
+}
 
-	return stpmic1_register_update(regul->low_power_reg, enable,
-				       LDO_BUCK_ENABLE_MASK);
+int stpmic1_lp_write_unpg(struct stpmic1_lp_cfg *cfg)
+{
+	uint8_t ctrl_val = 0;
+	uint8_t lp_val = 0;
+	uint8_t new_lp_val = 0;
+	int status = 0;
+
+	assert(cfg->lp_reg);
+
+	status = stpmic1_cache_get(cfg->ctrl_reg, &ctrl_val);
+	if (status)
+		return status;
+
+	status = stpmic1_cache_get(cfg->lp_reg, &lp_val);
+	if (status)
+		return status;
+
+	new_lp_val =  (ctrl_val & ~cfg->lp_mask) | cfg->lp_value;
+	if (new_lp_val != lp_val)
+		status = stpmic1_register_write(cfg->lp_reg, new_lp_val);
+
+	return status;
 }
 
 int stpmic1_lp_on_off_unpg(struct stpmic1_lp_cfg *cfg, int enable)
 {
 	assert(cfg->lp_reg && (enable == 0 || enable == 1));
 
-	return stpmic1_register_update(cfg->lp_reg, enable,
-				       LDO_BUCK_ENABLE_MASK);
-}
+	cfg->lp_mask |= LDO_BUCK_ENABLE_MASK;
+	cfg->lp_value |= enable;
 
-int stpmic1_lp_set_mode(const char *name, uint8_t hplp)
-{
-	const struct regul_struct *regul = get_regulator_data(name);
-
-	assert(regul->low_power_reg && (hplp == 0 || hplp == 1));
-
-	return stpmic1_register_update(regul->low_power_reg,
-				       hplp << LDO_BUCK_HPLP_POS,
-				       BIT(LDO_BUCK_HPLP_POS));
+	return 0;
 }
 
 int stpmic1_lp_mode_unpg(struct stpmic1_lp_cfg *cfg, unsigned int mode)
 {
 	assert(cfg->lp_reg && (mode == 0 || mode == 1));
-	return stpmic1_register_update(cfg->lp_reg,
-				       mode << LDO_BUCK_HPLP_POS,
-				       BIT(LDO_BUCK_HPLP_POS));
-}
 
-int stpmic1_lp_set_voltage(const char *name, uint16_t millivolts)
-{
-	size_t voltage_index = voltage_to_index(name, millivolts);
-	const struct regul_struct *regul = get_regulator_data(name);
-	uint8_t mask = 0;
+	cfg->lp_mask |= BIT(LDO_BUCK_HPLP_POS);
+	cfg->lp_value |= mode << LDO_BUCK_HPLP_POS;
 
-	assert(voltage_index != VOLTAGE_INDEX_INVALID);
-
-	mask = find_plat_mask(name);
-	if (!mask)
-		return 0;
-
-	return stpmic1_register_update(regul->low_power_reg, voltage_index << 2,
-				       mask);
+	return 0;
 }
 
 /* Returns 1 if no configuration are expected applied at runtime, 0 otherwise */
@@ -957,26 +985,39 @@ int stpmic1_lp_voltage_unpg(struct stpmic1_lp_cfg *cfg)
 {
 	assert(cfg->lp_reg);
 
-	return stpmic1_register_update(cfg->lp_reg, cfg->value,	cfg->mask);
+	cfg->lp_mask |= cfg->mask;
+	cfg->lp_value |= cfg->value;
+
+	return 0;
 }
 
 int stpmic1_register_read(uint8_t register_id,  uint8_t *value)
 {
 	struct i2c_handle_s *i2c = pmic_i2c_handle;
+	int status = 0;
 
-	return stm32_i2c_read_write_membyte(i2c, pmic_i2c_addr,
-					    register_id, value,
-					    false /* !write */);
+	status = stm32_i2c_read_write_membyte(i2c, pmic_i2c_addr,
+					      register_id, value,
+					      false /* !write */);
+	if (!status)
+		stpmic1_cache_set(register_id, *value);
+
+	return status;
 }
 
 int stpmic1_register_write(uint8_t register_id, uint8_t value)
 {
 	struct i2c_handle_s *i2c = pmic_i2c_handle;
 	uint8_t val = value;
+	int status = 0;
 
-	return stm32_i2c_read_write_membyte(i2c, pmic_i2c_addr,
-					    register_id, &val,
-					    true /* write */);
+	status = stm32_i2c_read_write_membyte(i2c, pmic_i2c_addr,
+					      register_id, &val,
+					      true /* write */);
+	if (!status)
+		stpmic1_cache_set(register_id, value);
+
+	return status;
 }
 
 int stpmic1_register_update(uint8_t register_id, uint8_t value, uint8_t mask)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /*
- * Copyright (c) 2017-2021, STMicroelectronics - All Rights Reserved
+ * Copyright (c) 2017-2026, STMicroelectronics - All Rights Reserved
  */
 
 #include <arm32.h>
@@ -192,6 +192,7 @@
 #define DDRPHYC_DSGCR_ODTPDD_MASK		GENMASK_32(23, 20)
 #define DDRPHYC_DSGCR_ODTPDD_0			BIT(20)
 #define DDRPHYC_DSGCR_NL2PD			BIT(24)
+#define DDRPHYC_DSGCR_CKOE			BIT(28)
 
 #define DDRPHYC_ZQ0CRN_ZDATA_MASK		GENMASK_32(27, 0)
 #define DDRPHYC_ZQ0CRN_ZDATA_SHIFT		0
@@ -243,7 +244,6 @@ static void ddr_enable_clock(void)
 	io_setbits32(rcc_base + RCC_DDRITFCR,
 		     RCC_DDRITFCR_DDRC1EN |
 		     RCC_DDRITFCR_DDRC2EN |
-		     RCC_DDRITFCR_DDRPHYCEN |
 		     RCC_DDRITFCR_DDRPHYCAPBEN |
 		     RCC_DDRITFCR_DDRCAPBEN);
 }
@@ -345,11 +345,20 @@ static int ddr_sw_self_refresh_in(void)
 	/* Disable PZQ cell (PUBL register) */
 	io_setbits32(ddrphy_base + DDRPHYC_ZQ0CR0, DDRPHYC_ZQ0CRN_ZQPD);
 
+	/* Set latch */
+	io_clrbits32(ddrphy_base + DDRPHYC_DSGCR, DDRPHYC_DSGCR_CKOE);
+
+	/* Additional delay to avoid early latch */
+	udelay(10);
+
 	/* Activate sw retention in PWRCTRL */
 	io_setbits32(pwr_base + PWR_CR3_OFF, PWR_CR3_DDRRETEN);
 
 	/* Switch controller clocks (uMCTL2/PUBL) to DLL ref clock */
 	io_setbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_GSKPCTRL);
+
+	/* Deactivate DDRPHY clock */
+	io_clrbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_DDRPHYCEN);
 
 	/* Disable all DLLs: GLITCH window */
 	io_setbits32(ddrphy_base + DDRPHYC_ACDLLCR, DDRPHYC_ACDLLCR_DLLDIS);
@@ -358,10 +367,7 @@ static int ddr_sw_self_refresh_in(void)
 	io_setbits32(ddrphy_base + DDRPHYC_DX2DLLCR, DDRPHYC_DXNDLLCR_DLLDIS);
 	io_setbits32(ddrphy_base + DDRPHYC_DX3DLLCR, DDRPHYC_DXNDLLCR_DLLDIS);
 
-	/* Switch controller clocks (uMCTL2/PUBL) to DLL output clock */
-	io_clrbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_GSKPCTRL);
-
-	/* Disable all clocks */
+	/* Disable all other DDR clocks */
 	ddr_disable_clock();
 
 	return 0;
@@ -385,7 +391,7 @@ static int ddr_sw_self_refresh_exit(void)
 	vaddr_t ddrctrl_base = get_ddrctrl_base();
 	vaddr_t ddrphy_base = get_ddrphy_base();
 
-	/* Enable all clocks */
+	/* Enable all clocks except DDRPHY */
 	ddr_enable_clock();
 
 	do_sw_handshake();
@@ -395,9 +401,6 @@ static int ddr_sw_self_refresh_exit(void)
 		     DDRCTRL_DFIMISC_DFI_INIT_COMPLETE_EN);
 
 	do_sw_ack();
-
-	/* Switch controller clocks (uMCTL2/PUBL) to DLL ref clock */
-	io_setbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_GSKPCTRL);
 
 	/* Enable all DLLs: GLITCH window */
 	io_clrbits32(ddrphy_base + DDRPHYC_ACDLLCR, DDRPHYC_ACDLLCR_DLLDIS);
@@ -411,8 +414,15 @@ static int ddr_sw_self_refresh_exit(void)
 
 	/* Switch controller clocks (uMCTL2/PUBL) to DLL ref clock */
 	io_clrbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_GSKPCTRL);
+
+	/* Assert DLL soft reset */
 	io_clrbits32(ddrphy_base + DDRPHYC_ACDLLCR, DDRPHYC_ACDLLCR_DLLSRST);
 	udelay(10);
+
+	/* Enable DDRPHY clock */
+	io_setbits32(rcc_base + RCC_DDRITFCR, RCC_DDRITFCR_DDRPHYCEN);
+
+	/* Release DLL soft reset */
 	io_setbits32(ddrphy_base + DDRPHYC_ACDLLCR, DDRPHYC_ACDLLCR_DLLSRST);
 
 	/* PHY partial init: (DLL lock and ITM reset) */
@@ -449,6 +459,11 @@ static int ddr_sw_self_refresh_exit(void)
 	io_clrbits32(ddrphy_base + DDRPHYC_ACIOCR, DDRPHYC_ACIOCR_CSPDD_MASK);
 	io_clrbits32(ddrphy_base + DDRPHYC_DXCCR, DDRPHYC_DXCCR_DXPDD);
 	io_clrbits32(ddrphy_base + DDRPHYC_DXCCR, DDRPHYC_DXCCR_DXPDR);
+
+	/* Release latch */
+	io_setbits32(ddrphy_base + DDRPHYC_DSGCR, DDRPHYC_DSGCR_CKOE);
+
+	/* Finalize pad drivers enabling */
 	io_clrbits32(ddrphy_base + DDRPHYC_DSGCR, DDRPHYC_DSGCR_ODTPDD_MASK);
 	io_clrbits32(ddrphy_base + DDRPHYC_DSGCR, DDRPHYC_DSGCR_NL2PD);
 	io_clrbits32(ddrphy_base + DDRPHYC_DSGCR, DDRPHYC_DSGCR_CKEPDD_MASK);

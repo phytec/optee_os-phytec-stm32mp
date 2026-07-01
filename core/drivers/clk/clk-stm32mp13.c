@@ -2037,6 +2037,7 @@ static const struct clk_ops clk_stm32_composite_duty_cycle_ops = {
 	.enable		= clk_stm32_composite_gate_enable,
 	.disable	= clk_stm32_composite_gate_disable,
 	.is_enabled	= clk_stm32_composite_gate_is_enabled,
+	.disable_unused	= clk_stm32_composite_gate_disable_unused,
 	.round_rate	= clk_stm32_composite_round_rate,
 	.get_duty_cycle	= clk_stm32_composite_get_duty_cycle,
 };
@@ -2125,6 +2126,7 @@ static const struct clk_ops clk_stm32_pll1p_ops = {
 	.enable		= clk_stm32_composite_gate_enable,
 	.disable	= clk_stm32_composite_gate_disable,
 	.is_enabled	= clk_stm32_composite_gate_is_enabled,
+	.disable_unused	= clk_stm32_composite_gate_disable_unused,
 };
 
 static TEE_Result clk_stm32_mpu_determine_rate(struct clk *clk,
@@ -2360,11 +2362,11 @@ static const struct clk_ops clk_stm32_oscillator_ops = {
 		.parents = { _parent },\
 	}
 
-static STM32_OSCILLATOR(ck_hsi, NULL, 0, GATE_HSI);
-static STM32_OSCILLATOR(ck_hse, NULL, 0, GATE_HSE);
-static STM32_OSCILLATOR(ck_csi, NULL, 0, GATE_CSI);
-static STM32_OSCILLATOR(ck_lsi, NULL, 0, GATE_LSI);
-static STM32_OSCILLATOR(ck_lse, NULL, 0, GATE_LSE);
+static STM32_OSCILLATOR(ck_hsi, NULL, CLK_IS_CRITICAL, GATE_HSI);
+static STM32_OSCILLATOR(ck_hse, NULL, CLK_IS_CRITICAL, GATE_HSE);
+static STM32_OSCILLATOR(ck_csi, NULL, CLK_IS_CRITICAL, GATE_CSI);
+static STM32_OSCILLATOR(ck_lsi, NULL, CLK_IS_CRITICAL, GATE_LSI);
+static STM32_OSCILLATOR(ck_lse, NULL, CLK_IS_CRITICAL, GATE_LSE);
 
 static STM32_FIXED_FACTOR(ck_i2sckin, NULL, 0, 1, 1);
 static STM32_FIXED_FACTOR(ck_hse_div2, &ck_hse, 0, 1, 2);
@@ -2432,7 +2434,7 @@ static STM32_PLL_OUPUT(ck_pll2p, 1, PARENT(&ck_pll2_vco), 0,
 static STM32_PLL_OUPUT(ck_pll2q, 1, PARENT(&ck_pll2_vco), 0,
 		       GATE_PLL2_DIVQ, DIV_PLL2DIVQ, NO_MUX);
 
-static STM32_PLL_OUPUT(ck_pll2r, 1, PARENT(&ck_pll2_vco), 0,
+static STM32_PLL_OUPUT(ck_pll2r, 1, PARENT(&ck_pll2_vco), CLK_IS_CRITICAL,
 		       GATE_PLL2_DIVR, DIV_PLL2DIVR, NO_MUX);
 
 static STM32_PLL_OUPUT(ck_pll3p, 1, PARENT(&ck_pll3_vco), 0,
@@ -2460,7 +2462,7 @@ static struct clk ck_mpu = {
 		.mux_id	= MUX_MPU,
 	},
 	.name		= "ck_mpu",
-	.flags		= CLK_OPS_PARENT_ENABLE,
+	.flags		= CLK_OPS_PARENT_ENABLE | CLK_IS_CRITICAL,
 	.num_parents	= 4,
 	.parents	= { &ck_hsi, &ck_hse, &ck_pll1p, &ck_pll1p_div },
 };
@@ -2472,7 +2474,7 @@ static struct clk ck_axi = {
 		.div_id	= DIV_AXI,
 	},
 	.name		= "ck_axi",
-	.flags		= CLK_OPS_PARENT_ENABLE,
+	.flags		= CLK_OPS_PARENT_ENABLE | CLK_IS_CRITICAL,
 	.num_parents	= 3,
 	.parents	= { &ck_hsi, &ck_hse, &ck_pll2p },
 };
@@ -2484,7 +2486,7 @@ static struct clk ck_mlahb = {
 		.div_id	= DIV_MLAHB,
 	},
 	.name		= "ck_mlahb",
-	.flags		= CLK_OPS_PARENT_ENABLE,
+	.flags		= CLK_OPS_PARENT_ENABLE | CLK_IS_CRITICAL,
 	.num_parents	= 4,
 	.parents	= { &ck_hsi, &ck_hse, &ck_csi, &ck_pll3p },
 };
@@ -2506,23 +2508,24 @@ static STM32_TIMER(ck_timg2, &ck_pclk2, 0, RCC_APB2DIVR, RCC_TIMG2PRER);
 static STM32_TIMER(ck_timg3, &ck_pclk6, 0, RCC_APB6DIVR, RCC_TIMG3PRER);
 
 /* Peripheral and Kernel Clocks */
-static STM32_GATE(ck_ddrc1, &ck_axi, 0, GATE_DDRC1);
-static STM32_GATE(ck_ddrc1lp, &ck_axi, 0, GATE_DDRC1LP);
-static STM32_GATE(ck_ddrphyc, &ck_pll2r, 0, GATE_DDRPHYC);
-static STM32_GATE(ck_ddrphyclp, &ck_pll2r, 0, GATE_DDRPHYCLP);
-static STM32_GATE(ck_ddrcapb, &ck_pclk4, 0, GATE_DDRCAPB);
-static STM32_GATE(ck_ddrcapblp, &ck_pclk4, 0, GATE_DDRCAPBLP);
-static STM32_GATE(ck_axidcg, &ck_axi, 0, GATE_AXIDCG);
-static STM32_GATE(ck_ddrphycapb, &ck_pclk4, 0, 0);
-static STM32_GATE(ck_ddrphycapblp, &ck_pclk4, 0, GATE_DDRPHYCAPBLP);
+static STM32_GATE(ck_ddrc1, &ck_axi, CLK_IS_CRITICAL, GATE_DDRC1);
+static STM32_GATE(ck_ddrc1lp, &ck_axi, CLK_IS_CRITICAL, GATE_DDRC1LP);
+static STM32_GATE(ck_ddrphyc, &ck_pll2r, CLK_IS_CRITICAL, GATE_DDRPHYC);
+static STM32_GATE(ck_ddrphyclp, &ck_pll2r, CLK_IS_CRITICAL, GATE_DDRPHYCLP);
+static STM32_GATE(ck_ddrcapb, &ck_pclk4, CLK_IS_CRITICAL, GATE_DDRCAPB);
+static STM32_GATE(ck_ddrcapblp, &ck_pclk4, CLK_IS_CRITICAL, GATE_DDRCAPBLP);
+static STM32_GATE(ck_axidcg, &ck_axi, CLK_IS_CRITICAL, GATE_AXIDCG);
+static STM32_GATE(ck_ddrphycapb, &ck_pclk4, CLK_IS_CRITICAL, GATE_DDRPHYCAPB);
+static STM32_GATE(ck_ddrphycapblp, &ck_pclk4, CLK_IS_CRITICAL,
+		  GATE_DDRPHYCAPBLP);
 static STM32_GATE(ck_syscfg, &ck_pclk3, 0, GATE_SYSCFG);
 static STM32_GATE(ck_ddrperfm, &ck_pclk4, 0, GATE_DDRPERFM);
 static STM32_GATE(ck_iwdg2, &ck_pclk4, 0, GATE_IWDG2APB);
-static STM32_GATE(ck_rtcapb, &ck_pclk5, 0, GATE_RTCAPB);
-static STM32_GATE(ck_tzc, &ck_pclk5, 0, GATE_TZC);
-static STM32_GATE(ck_etzpcb, &ck_pclk5, 0, GATE_ETZPC);
+static STM32_GATE(ck_rtcapb, &ck_pclk5, CLK_IS_CRITICAL, GATE_RTCAPB);
+static STM32_GATE(ck_tzc, &ck_pclk5, CLK_IS_CRITICAL, GATE_TZC);
+static STM32_GATE(ck_etzpcb, &ck_pclk5, CLK_IS_CRITICAL, GATE_ETZPC);
 static STM32_GATE(ck_iwdg1apb, &ck_pclk5, 0, GATE_IWDG1APB);
-static STM32_GATE(ck_bsec, &ck_pclk5, 0, GATE_BSEC);
+static STM32_GATE(ck_bsec, &ck_pclk5, CLK_IS_CRITICAL, GATE_BSEC);
 static STM32_GATE(ck_tim12_k, &ck_timg3, 0, GATE_TIM12);
 static STM32_GATE(ck_tim15_k, &ck_timg3, 0, GATE_TIM15);
 static STM32_GATE(ck_gpioa, &ck_mlahb, 0, GATE_GPIOA);
@@ -2537,9 +2540,9 @@ static STM32_GATE(ck_gpioi, &ck_mlahb, 0, GATE_GPIOI);
 static STM32_GATE(ck_pka, &ck_axi, 0, GATE_PKA);
 static STM32_GATE(ck_cryp1, &ck_pclk5, 0, GATE_CRYP1);
 static STM32_GATE(ck_hash1, &ck_pclk5, 0, GATE_HASH1);
-static STM32_GATE(ck_bkpsram, &ck_pclk5, 0, GATE_BKPSRAM);
+static STM32_GATE(ck_bkpsram, &ck_pclk5, CLK_IS_CRITICAL, GATE_BKPSRAM);
 static STM32_GATE(ck_dbg, &ck_axi, 0, GATE_DBGCK);
-static STM32_GATE(ck_mce, &ck_axi, 0, GATE_MCE);
+static STM32_GATE(ck_mce, &ck_axi, CLK_IS_CRITICAL, GATE_MCE);
 static STM32_GATE(ck_tim2_k, &ck_timg1, 0, GATE_TIM2);
 static STM32_GATE(ck_tim3_k, &ck_timg1, 0, GATE_TIM3);
 static STM32_GATE(ck_tim4_k, &ck_timg1, 0, GATE_TIM4);
@@ -2592,7 +2595,8 @@ static STM32_KCLK(ck_usbo_k, 2,
 		  GATE_USBO, MUX_USBO);
 
 static STM32_KCLK(ck_stgen_k, 2,
-		  PARENT(&ck_hsi, &ck_hse), 0, GATE_STGENC, MUX_STGEN);
+		  PARENT(&ck_hsi, &ck_hse), CLK_IS_CRITICAL,
+		  GATE_STGENC, MUX_STGEN);
 
 static STM32_KCLK(ck_usart1_k, 6,
 		  PARENT(&ck_pclk6, &ck_pll3q, &ck_hsi,
@@ -2618,7 +2622,7 @@ static STM32_KCLK(ck_saes_k, 4,
 
 static STM32_KCLK(ck_rng1_k, 4,
 		  PARENT(&ck_csi, &ck_pll4r, &ck_off, &ck_lsi),
-		  0, GATE_RNG1, MUX_RNG1);
+		  CLK_IS_CRITICAL, GATE_RNG1, MUX_RNG1);
 
 static STM32_KCLK(ck_sdmmc1_k, 4,
 		  PARENT(&ck_axi, &ck_pll3r, &ck_pll4p, &ck_hsi),
@@ -2763,7 +2767,7 @@ static STM32_KCLK(ck_eth2ck_k, 2, PARENT(&ck_pll4p, &ck_pll3q),
 
 static STM32_COMPOSITE(ck_mco1, 5,
 		       PARENT(&ck_hsi, &ck_hse, &ck_csi, &ck_lsi, &ck_lse),
-		       0, GATE_MCO1, DIV_MCO1, MUX_MCO1);
+		       CLK_IS_CRITICAL, GATE_MCO1, DIV_MCO1, MUX_MCO1);
 
 static STM32_COMPOSITE(ck_mco2, 6,
 		       PARENT(&ck_mpu, &ck_axi, &ck_mlahb,
@@ -3183,7 +3187,7 @@ static void clk_stm32_pm_enable_ker_clocks(void)
 static void clear_rcc_reset_status(void)
 {
 	/* Clear reset status fields */
-	io_write32(stm32_rcc_base() + RCC_MP_RSTSCLRR, 0);
+	io_write32(stm32_rcc_base() + RCC_MP_RSTSCLRR, ~0);
 }
 
 static struct stm32_pll_dt_cfg stm32_pll_backup_state[PLL_NB];
@@ -3398,7 +3402,6 @@ static void __maybe_unused stm32_clock_suspend(void)
 	clk_stm32_pm_backup_all_div();
 	clk_stm32_pm_backup_all_pll();
 	clk_stm32_pm_enable_ker_clocks();
-	clear_rcc_reset_status();
 }
 
 static void __maybe_unused stm32_clock_resume(void)
@@ -3418,67 +3421,22 @@ static void __maybe_unused stm32_clock_resume(void)
 static TEE_Result stm32_clock_pm(enum pm_op op, unsigned int pm_hint,
 				 const struct pm_callback_handle *hdl __unused)
 {
-	static int standby_prepared;
-
 	if (op == PM_OP_SUSPEND) {
 		if (PM_HINT_IS_STATE(pm_hint, CONTEXT)) {
 			stm32_clock_suspend();
-			standby_prepared = 1;
 		} else {
 			stm32mp1_clk_save_context_for_stop();
-			standby_prepared = 0;
 		}
+		clear_rcc_reset_status();
 	} else {
 		/* back from standby */
-		if (standby_prepared)
+		if (PM_HINT_IS_STATE(pm_hint, CONTEXT))
 			stm32_clock_resume();
 		else
 			stm32mp1_clk_restore_context_for_stop();
 	}
 
 	return TEE_SUCCESS;
-}
-
-static bool clk_stm32_clock_is_critical(struct clk *clk __maybe_unused)
-{
-	struct clk *clk_criticals[] = {
-		&ck_hsi,
-		&ck_hse,
-		&ck_csi,
-		&ck_lsi,
-		&ck_lse,
-		&ck_pll2r,
-		&ck_mpu,
-		&ck_ddrc1,
-		&ck_ddrc1lp,
-		&ck_ddrphyc,
-		&ck_ddrphyclp,
-		&ck_ddrcapb,
-		&ck_ddrcapblp,
-		&ck_axidcg,
-		&ck_ddrphycapb,
-		&ck_ddrphycapblp,
-		&ck_rtcapb,
-		&ck_tzc,
-		&ck_etzpcb,
-		&ck_bsec,
-		&ck_stgen_k,
-		&ck_bkpsram,
-		&ck_mce,
-		&ck_mco1,
-		&ck_rng1_k,
-		&ck_mlahb,
-	};
-	size_t i = 0;
-
-	for (i = 0; i < ARRAY_SIZE(clk_criticals); i++) {
-		struct clk *clk_critical = clk_criticals[i];
-
-		if (clk == clk_critical)
-			return true;
-	}
-
-	return false;
 }
 
 static void clk_stm32_init_oscillators(const void *fdt, int node)
@@ -3526,7 +3484,6 @@ static struct clk_stm32_priv stm32mp13_clock_data = {
 	.pdata			= &stm32mp13_clock_pdata,
 	.nb_clk_refs		= STM32MP13_ALL_CLK_NB,
 	.clk_refs		= stm32mp13_clk_provided,
-	.is_critical		= clk_stm32_clock_is_critical,
 };
 
 static TEE_Result stm32mp13_clk_probe(const void *fdt, int node,

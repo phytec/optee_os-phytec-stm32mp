@@ -155,6 +155,11 @@ static void clk_disable_no_lock(struct clk *clk)
 	if (!refcount_dec(&clk->enabled_count))
 		return;
 
+	if (clk->flags & CLK_IS_CRITICAL) {
+		EMSG("Attempt to disable critical clock %s", clk->name);
+		return;
+	}
+
 	if (clk->ops->disable)
 		clk->ops->disable(clk);
 
@@ -695,5 +700,26 @@ void clk_restore_context(void)
 	SLIST_FOREACH(clk, &clock_list, link) {
 		if (clk->ops && clk->ops->restore_context)
 			clk->ops->restore_context(clk);
+	}
+}
+
+void clk_disable_unused(void)
+{
+	struct clk *clk = NULL;
+
+	SLIST_FOREACH(clk, &clock_list, link) {
+		if (clk_is_enabled_no_lock(clk))
+			continue;
+
+		if (clk->ops && clk->ops->is_enabled) {
+			if (clk->ops->is_enabled(clk)) {
+				DMSG("disable unused clock (%s)\n", clk->name);
+
+				if (clk->ops->disable_unused)
+					clk->ops->disable_unused(clk);
+				else
+					clk->ops->disable(clk);
+			}
+		}
 	}
 }

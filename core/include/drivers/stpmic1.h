@@ -175,12 +175,6 @@ int stpmic1_register_update(uint8_t register_id, uint8_t value, uint8_t mask);
 
 int stpmic1_regulator_mask_reset_set(const char *name);
 
-/* API for low power configuration of regulators driven from STPMIC1 device */
-int stpmic1_lp_copy_reg(const char *name);
-int stpmic1_lp_reg_on_off(const char *name, uint8_t enable);
-int stpmic1_lp_set_mode(const char *name, uint8_t hplp);
-int stpmic1_lp_set_voltage(const char *name, uint16_t millivolts);
-
 /*
  * Specific API for controlling regulators driven from STPMIC1 device
  * from unpaged execution context of the STPMIC1 driver.
@@ -214,6 +208,8 @@ struct stpmic1_bo_cfg {
 struct stpmic1_lp_cfg {
 	uint8_t ctrl_reg;
 	uint8_t lp_reg;
+	uint8_t lp_value;
+	uint8_t lp_mask;
 	uint8_t value;
 	uint8_t mask;
 };
@@ -231,12 +227,14 @@ int stpmic1_bo_pull_down_unpg(struct stpmic1_bo_cfg *cfg);
 int stpmic1_bo_mask_reset_cfg(const char *name, struct stpmic1_bo_cfg *cfg);
 int stpmic1_bo_mask_reset_unpg(struct stpmic1_bo_cfg *cfg);
 
+/* API for low power configuration of regulators driven from STPMIC1 device */
 bool stpmic1_regu_has_lp_cfg(const char *name);
 int stpmic1_lp_cfg(const char *name, struct stpmic1_lp_cfg *cfg);
+void stpmic1_lp_get_unpg(struct stpmic1_lp_cfg *cfg);
+int stpmic1_lp_write_unpg(struct stpmic1_lp_cfg *cfg);
 int stpmic1_lp_load_unpg(struct stpmic1_lp_cfg *cfg);
 int stpmic1_lp_on_off_unpg(struct stpmic1_lp_cfg *cfg, int enable);
-int stpmic1_lp_mode_unpg(struct stpmic1_lp_cfg *cfg,
-			 unsigned int mode);
+int stpmic1_lp_mode_unpg(struct stpmic1_lp_cfg *cfg, unsigned int mode);
 int stpmic1_lp_voltage_cfg(const char *name, uint16_t millivolts,
 			   struct stpmic1_lp_cfg *cfg);
 int stpmic1_lp_voltage_unpg(struct stpmic1_lp_cfg *cfg);

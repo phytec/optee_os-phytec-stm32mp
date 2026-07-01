@@ -18,6 +18,7 @@
 #define CLK_SET_RATE_PARENT	BIT(3) /* propagate rate change up one level */
 #define CLK_SET_RATE_UNGATE	BIT(4) /* clock needs to run to set rate */
 #define CLK_DUTY_CYCLE_PARENT	BIT(5) /* forward duty cycle call to parent */
+#define CLK_IS_CRITICAL		BIT(6) /* critical clock, do not gate, ever */
 
 /**
  * struct clk - Clock structure
@@ -92,6 +93,7 @@ struct clk_duty {
  *		actually supported by the clock, and optionally the parent clock
  *		that should be used to provide the clock rate
  * @get_duty_cycle: Get duty cytcle of the clock
+ * @disable_unused: Disable the clock if it is not used anymore
  */
 struct clk_ops {
 	bool (*is_enabled)(struct clk *clk);
@@ -116,6 +118,7 @@ struct clk_ops {
 				    unsigned long parent_rate);
 	TEE_Result (*save_context)(struct clk *clk);
 	void (*restore_context)(struct clk *clk);
+	void (*disable_unused)(struct clk *clk);
 };
 
 /**
@@ -317,6 +320,14 @@ TEE_Result clk_save_context(void);
  *
  */
 void clk_restore_context(void);
+
+/**
+ * clk_disable_unused - Disable unused clocks
+ *
+ * This function iterates through all registered clocks and disables those
+ * that are not currently in use.
+ */
+void clk_disable_unused(void);
 
 /* Print current clock tree summary to output console with debug trace level */
 #ifdef CFG_DRIVERS_CLK

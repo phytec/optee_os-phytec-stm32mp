@@ -11,6 +11,17 @@
 		interrupts = <GIC_SPI 144 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&rcc CK_BUS_CRYP1>;
 		resets = <&rcc CRYP1_R>;
+		access-controllers = <&rifsc STM32MP25_RIFSC_CRYP1_ID>;
+		status = "disabled";
+	};
+
+	cryp2: cryp@42040000 {
+		compatible = "st,stm32mp1-cryp";
+		reg = <0x42040000 0x400>;
+		interrupts = <GIC_SPI 180 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&rcc CK_BUS_CRYP2>;
+		resets = <&rcc CRYP2_R>;
+		access-controllers = <&rifsc STM32MP25_RIFSC_CRYP2_ID>;
 		status = "disabled";
 	};
 
@@ -21,6 +32,7 @@
 		clocks = <&rcc CK_BUS_SAES>, <&rcc CK_BUS_RNG>;
 		clock-names = "bus", "rng";
 		resets = <&rcc SAES_R>;
+		access-controllers = <&rifsc STM32MP25_RIFSC_SAES_ID>;
 		status = "disabled";
 	};
 
@@ -31,6 +43,7 @@
 		clocks = <&rcc CK_BUS_PKA>, <&rcc CK_BUS_RNG>;
 		clock-names = "bus", "rng";
 		resets = <&rcc PKA_R>;
+		access-controllers = <&rifsc STM32MP25_RIFSC_PKA_ID>;
 		status = "disabled";
 	};
 };

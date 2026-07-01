@@ -252,7 +252,7 @@ static TEE_Result set_opp(unsigned int opp)
  */
 static void ca35ss_lpi_isolate(bool *tsgen)
 {
-	struct clk *dbg_clk = stm32mp_rcc_clock_id_to_clk(CK_SYSDBG);
+	struct clk *dbg_clk = stm32mp_rcc_clock_id_to_clk(CK_KER_TSDBG);
 	uint64_t timeout = 0;
 	uint32_t counter = UINT32_MAX;
 
