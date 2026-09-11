@@ -202,46 +202,48 @@ void plat_dt_patch(void)
 	if (node >= 0 && (ram_val == EEPROM_RAM_SIZE_1GB_16 || ram_val == EEPROM_RAM_SIZE_1GB_32))
 	{
 		phandle_tab = fdt_getprop(fdt_curr, node, "memory-region", &len);
-		memcpy(phandle_tab_new, phandle_tab, len);
+		if (phandle_tab != NULL)
+			memcpy(phandle_tab_new, phandle_tab, len);
 
-		node_linuxkernel1 = fdt_path_offset(fdt_curr, "/reserved-memory/linuxkernel1-1gb@84000000");
-		if (node_linuxkernel1 >= 0 )
-		{
-			phandle_cpu = fdt_get_phandle(fdt_curr, node_linuxkernel1);
-			phandle_fdt = cpu_to_fdt32(phandle_cpu);
-			phandle_tab_new[len/sizeof(uint32_t)-5] = phandle_fdt;
-		}
+			node_linuxkernel1 = fdt_path_offset(fdt_curr, "/reserved-memory/linuxkernel1-1gb@84000000");
+			if (node_linuxkernel1 >= 0 )
+			{
+				phandle_cpu = fdt_get_phandle(fdt_curr, node_linuxkernel1);
+				phandle_fdt = cpu_to_fdt32(phandle_cpu);
+				phandle_tab_new[len/sizeof(uint32_t)-5] = phandle_fdt;
+			}
 
-		node_gpu_reserved = fdt_path_offset(fdt_curr, "/reserved-memory/gpu-reserved-1gb@ba800000");
-		if (node_gpu_reserved >= 0 )
-		{
-			phandle_cpu = fdt_get_phandle(fdt_curr, node_gpu_reserved);
-			phandle_fdt = cpu_to_fdt32(phandle_cpu);
-			phandle_tab_new[len/sizeof(uint32_t)-4] = phandle_fdt;
-		}
+			node_gpu_reserved = fdt_path_offset(fdt_curr, "/reserved-memory/gpu-reserved-1gb@ba800000");
+			if (node_gpu_reserved >= 0 )
+			{
+				phandle_cpu = fdt_get_phandle(fdt_curr, node_gpu_reserved);
+				phandle_fdt = cpu_to_fdt32(phandle_cpu);
+				phandle_tab_new[len/sizeof(uint32_t)-4] = phandle_fdt;
+			}
 
-		node_ltdc_sec_layer = fdt_path_offset(fdt_curr, "/reserved-memory/ltdc-sec-layer-1gb@be800000");
-		if (node_ltdc_sec_layer >= 0 )
-		{
-			phandle_cpu = fdt_get_phandle(fdt_curr, node_ltdc_sec_layer);
-			phandle_fdt = cpu_to_fdt32(phandle_cpu);
-			phandle_tab_new[len/sizeof(uint32_t)-3] = phandle_fdt;
-		}
+			node_ltdc_sec_layer = fdt_path_offset(fdt_curr, "/reserved-memory/ltdc-sec-layer-1gb@be800000");
+			if (node_ltdc_sec_layer >= 0 )
+			{
+				phandle_cpu = fdt_get_phandle(fdt_curr, node_ltdc_sec_layer);
+				phandle_fdt = cpu_to_fdt32(phandle_cpu);
+				phandle_tab_new[len/sizeof(uint32_t)-3] = phandle_fdt;
+			}
 
-		node_ltdc_sec_rotation = fdt_path_offset(fdt_curr, "/reserved-memory/ltdc-sec-rotation-1gb@bf000000");
-		if (node_ltdc_sec_rotation >= 0 )
-		{
-			phandle_cpu = fdt_get_phandle(fdt_curr, node_ltdc_sec_rotation);
-			phandle_fdt = cpu_to_fdt32(phandle_cpu);
-			phandle_tab_new[len/sizeof(uint32_t)-2] = phandle_fdt;
-		}
+			node_ltdc_sec_rotation = fdt_path_offset(fdt_curr, "/reserved-memory/ltdc-sec-rotation-1gb@bf000000");
+			if (node_ltdc_sec_rotation >= 0 )
+			{
+				phandle_cpu = fdt_get_phandle(fdt_curr, node_ltdc_sec_rotation);
+				phandle_fdt = cpu_to_fdt32(phandle_cpu);
+				phandle_tab_new[len/sizeof(uint32_t)-2] = phandle_fdt;
+			}
 
-		ret = fdt_setprop(fdt_curr, node, "memory-region", phandle_tab_new, len);
+			ret = fdt_setprop(fdt_curr, node, "memory-region", phandle_tab_new, len);
 
-		if (ret < 0)
-		{
-			EMSG("Cannot reconfigure the RAM");
-			return;
+			if (ret < 0)
+			{
+				EMSG("Cannot reconfigure the RAM");
+				return;
+			}
 		}
 	}
 
