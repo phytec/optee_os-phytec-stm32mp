@@ -989,23 +989,11 @@
 	st,protreg = <RISAFPROT(RISAF_REG_ID(10), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_NSEC, RIF_ENC_DIS, RIF_BREN_EN)>;
 };
 
-&gpu_reserved_1gb {
-	st,protreg = <RISAFPROT(RISAF_REG_ID(10), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_NSEC, RIF_ENC_DIS, RIF_BREN_EN)>;
-};
-
 &ltdc_sec_layer {
 	st,protreg = <RISAFPROT(RISAF_REG_ID(13), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_SEC, RIF_ENC_DIS, RIF_BREN_EN)>;
 };
 
-&ltdc_sec_layer_1gb {
-	st,protreg = <RISAFPROT(RISAF_REG_ID(13), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_SEC, RIF_ENC_DIS, RIF_BREN_EN)>;
-};
-
 &ltdc_sec_rotation {
-	st,protreg = <RISAFPROT(RISAF_REG_ID(14), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_NSEC, RIF_ENC_DIS, RIF_BREN_EN)>;
-};
-
-&ltdc_sec_rotation_1gb {
 	st,protreg = <RISAFPROT(RISAF_REG_ID(14), RIF_CID0_BF|RIF_CID1_BF, RIF_CID0_BF|RIF_CID1_BF, RIF_UNUSED, RIF_NSEC, RIF_ENC_DIS, RIF_BREN_EN)>;
 };
 
@@ -1014,6 +1002,6 @@
 };
 
 &risaf4 {
-	memory-region= <&tfm_code>, <&cm33_cube_fw>, <&tfm_data>, <&cm33_cube_data>, <&ipc_shmem>, <&spare1>, <&bl31_context>, <&op_tee>, <&linuxkernel1>, <&gpu_reserved>, <&ltdc_sec_layer>, <&ltdc_sec_rotation>, <0x00000000>;
+	memory-region= <&tfm_code>, <&cm33_cube_fw>, <&tfm_data>, <&cm33_cube_data>, <&ipc_shmem>, <&spare1>, <&bl31_context>, <&op_tee>, <&gpu_reserved>, <&ltdc_sec_layer>, <&ltdc_sec_rotation>, <&linuxkernel1>, <0x00000000>;
 };
 
