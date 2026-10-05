@@ -133,18 +133,9 @@
 			no-map;
 		};
 
-		linuxkernel1_1gb: linuxkernel1-1gb@89800000 {
-			reg = <0x0 0x89800000 0x0 0x36800000>;
-			no-map;
-		};
-
 		linuxkernel2: linuxkernel2@100000000 {
 			reg = <0x1 0x00000000 0x0 0x80000000>;
 			no-map;
 		};
-	};
-
-	alternative-memory {
-		memory-region = <&linuxkernel1_1gb>, <&linuxkernel2>;
 	};
 };
