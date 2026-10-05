@@ -100,8 +100,6 @@ void plat_dt_patch(void)
 	vaddr_t tamp_vbase;
 	void *fdt_curr;
 	int node;
-	int node_linuxkernel2;
-	int node_linuxkernel1;
 	int node_cpu1;
 	int node_gpu_opp_table;
 	int node_gpu;
@@ -109,11 +107,7 @@ void plat_dt_patch(void)
 	int node_clk_opp;
 	int node_saes;
 	int node_pka;
-	uint32_t phandle_fdt, phandle_cpu;
-	const uint32_t *phandle_tab;
-	uint32_t phandle_tab_new[13];
 	uint32_t reg_cells[4];
-	int len;
 	int ret;
 
 	tamp_vbase = (vaddr_t)phys_to_virt_io(TAMP_BASE,0x400);
@@ -172,52 +166,6 @@ void plat_dt_patch(void)
 		{
 			EMSG("Cannot reconfigure the RAM");
 			return;
-		}
-	}
-
-	node = fdt_node_offset_by_prop_value(fdt_curr, -1, "compatible", "st,stm32mp25-risaf-enc", 23);
-	if (node >= 0 && ram_val == EEPROM_RAM_SIZE_4GB_32)
-	{
-		node_linuxkernel2 = fdt_path_offset(fdt_curr, "/reserved-memory/linuxkernel2@100000000");
-		if (node_linuxkernel2 >= 0 )
-		{
-			phandle_cpu = fdt_get_phandle(fdt_curr, node_linuxkernel2);
-			phandle_fdt = cpu_to_fdt32(phandle_cpu);
-			phandle_tab = fdt_getprop(fdt_curr, node, "memory-region", &len);
-			memcpy(phandle_tab_new, phandle_tab, len);
-			phandle_tab_new[len/sizeof(uint32_t)-1] = phandle_fdt;
-			ret = fdt_setprop(fdt_curr, node, "memory-region", phandle_tab_new, len);
-
-			if (ret < 0)
-			{
-				EMSG("Cannot reconfigure the RAM");
-				return;
-			}
-		}
-	}
-
-	if (node >= 0 && (ram_val == EEPROM_RAM_SIZE_1GB_16 || ram_val == EEPROM_RAM_SIZE_1GB_32))
-	{
-		phandle_tab = fdt_getprop(fdt_curr, node, "memory-region", &len);
-		if (phandle_tab != NULL)
-		{
-			memcpy(phandle_tab_new, phandle_tab, len);
-
-			node_linuxkernel1 = fdt_path_offset(fdt_curr, "/reserved-memory/linuxkernel1-1gb@89800000");
-			if (node_linuxkernel1 >= 0 )
-			{
-				phandle_cpu = fdt_get_phandle(fdt_curr, node_linuxkernel1);
-				phandle_fdt = cpu_to_fdt32(phandle_cpu);
-				phandle_tab_new[len/sizeof(uint32_t)-2] = phandle_fdt;
-			}
-
-			ret = fdt_setprop(fdt_curr, node, "memory-region", phandle_tab_new, len);
-
-			if (ret < 0)
-			{
-				EMSG("Cannot reconfigure the RAM");
-				return;
-			}
 		}
 	}
 
